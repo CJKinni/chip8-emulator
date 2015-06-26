@@ -7,7 +7,7 @@ import (
     "runtime"
     "log"
 	"math/rand"
-	"github.com/go-gl/gl/v2.1/gl"
+	"github.com/go-gl/gl/v3.3-compatibility/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"time"
 )
@@ -49,12 +49,12 @@ type chip8 struct {
 }
 
 func init() {
-	runtime.LockOSThread()
 }
 
 var myChip8 chip8
 
 func main() {
+	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
@@ -83,12 +83,13 @@ func main() {
 	myChip8.loadGame(os.Args[1]);
 
 	for !window.ShouldClose() {
+
 		myChip8.emulateCycle(window)
 
 		if(myChip8.drawFlag) {
 			myChip8.drawGraphics()
       		window.SwapBuffers()
-			time.Sleep(32 * time.Millisecond)
+			time.Sleep(64 * time.Millisecond)
 		}
 
         glfw.PollEvents()
@@ -118,6 +119,7 @@ func (c *chip8) loadGame(filename string) {
 	for i := 0; i < len(raw); i++ {
 		c.memory[i+512] = raw[i]
 	}
+	c.Chip8_DEBUG_MEMORY()
 
 }
 
@@ -157,17 +159,17 @@ func (c *chip8) Chip8_2NNN() {
 func (c *chip8) Chip8_3XNN() {
 	//3XNN: Skips the next instruction if VX doesn't equal NN.
 	if (c.v[(c.opcode & 0x0F00) >> 8] != byte(c.opcode & 0x00FF)) {
-		c.pc += 4
+		c.pc += 2
 	} else {
-		c.pc +=2
+		c.pc += 4
 	}
 }
 func (c *chip8) Chip8_4XNN() {
 	//4XNN: Skips the next instruction if VX equals NN
 	if (c.v[(c.opcode & 0x0F00) >> 8] == byte(c.opcode & 0x00FF)) {
-		c.pc += 4
+		c.pc += 2
 	} else {
-		c.pc +=2
+		c.pc += 4
 	}
 }
 func(c *chip8) Chip8_5XY0() {
@@ -301,17 +303,17 @@ func (c *chip8) Chip8_DXYN() {
 func (c *chip8) Chip8_EX9E() {
 	//EX9E: Skips the next instruction if the key stored in VX is pressed
 	if(c.key[c.v[(c.opcode & 0x0F00) >> 8]] != false) {
-		c.pc += 4;
-	} else {
 		c.pc += 2;
+	} else {
+		c.pc += 4;
 	}
 }
 func (c *chip8) Chip8_EXA1() {
 	//EXA1: Skips the next instruction if the key stored in VX isn't pressed
 	if(c.key[c.v[(c.opcode & 0x0F00) >> 8]] == false) {
-		c.pc += 4;
-	} else {
 		c.pc += 2;
+	} else {
+		c.pc += 4;
 	}
 }
 func (c *chip8) Chip8_FX0A(window *glfw.Window) {
@@ -353,9 +355,9 @@ func (c *chip8) Chip8_FX29() {
 }
 func (c *chip8) Chip8_FX33() {
 	//FX33: Look it up.  It's a long one.
-	c.memory[c.i+2] = byte((c.v[(c.opcode & 0x0F00) >> 8] / 100 )% 10)
+	c.memory[c.i]   = byte((c.v[(c.opcode & 0x0F00) >> 8] / 100 )% 10)
 	c.memory[c.i+1] = byte((c.v[(c.opcode & 0x0F00) >> 8] / 10 ) % 10)
-	c.memory[c.i]   = byte( c.v[(c.opcode & 0x0F00) >> 8] % 10)
+	c.memory[c.i+2] = byte( c.v[(c.opcode & 0x0F00) >> 8] % 10)
 	c.pc += 2
 }
 func (c *chip8) Chip8_FX55() {
@@ -376,9 +378,16 @@ func (c *chip8) Chip8_FX65() {
 }
 
 func (c *chip8) Chip8_DEBUG() {
-	fmt.Printf("Op:%4X pc:%4X i:%4X s[sp]:%4X sp:%1X d:", c.opcode, c.pc, c.i, c.stack[c.stack_p], c.stack_p)
+	fmt.Printf("Op:%4X pc:%4X i:%4X s[sp]:%4X sp:%1X d:%2X", c.opcode, c.pc, c.i, c.stack[c.stack_p], c.stack_p, c.delay_timer)
 	for i := 0; i < len(c.v); i++ {
 		fmt.Printf("v[%1X]:%2X ", i, c.v[i])
+	}
+	fmt.Printf("\n")
+}
+
+func (c *chip8) Chip8_DEBUG_MEMORY() {
+	for i := 0; i < len(c.memory); i = i + 2 {	 
+		fmt.Printf("c.mem[%4X]:0x%4X\t", i, uint16(c.memory[i]) << 8 | uint16(c.memory[i + 1]))
 	}
 	fmt.Printf("\n")
 }
@@ -428,8 +437,8 @@ func (c *chip8) emulateCycle(window *glfw.Window) {
 					c.Chip8_8XY5()
 				case 0x0006: 
 					c.Chip8_8XY6()
-				case 0x0007:
-					c.Chip8_8XY7() // NOT IMPLEMENTED
+				//case 0x0007:
+				//	c.Chip8_8XY7() // NOT IMPLEMENTED
 				case 0x000E: 
 					c.Chip8_8XYE()
 				default:
