@@ -89,7 +89,7 @@ func main() {
 		if(myChip8.drawFlag) {
 			myChip8.drawGraphics()
       		window.SwapBuffers()
-			time.Sleep(64 * time.Millisecond)
+			time.Sleep(0 * time.Millisecond)
 		}
 
         glfw.PollEvents()
@@ -119,7 +119,7 @@ func (c *chip8) loadGame(filename string) {
 	for i := 0; i < len(raw); i++ {
 		c.memory[i+512] = raw[i]
 	}
-	c.Chip8_DEBUG_MEMORY()
+	//c.Chip8_DEBUG_MEMORY()
 
 }
 
@@ -242,8 +242,15 @@ func (c *chip8) Chip8_8XY6() {
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XY7() {
-	fmt.Printf("Opcode not implemented:0x8XY7\n")
-	os.Exit(-2)
+	// 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+	if (c.v[(c.opcode & 0x0F00) >> 8] < c.v[(c.opcode & 0x00F0) >> 4]) {
+		c.v[0xF] = 1 
+	} else {
+		c.v[0xF] = 0 // borrow
+	}
+	c.v[(c.opcode & 0x0F00) >> 8] =  c.v[(c.opcode & 0x00F0) >> 4] - c.v[(c.opcode & 0x0F00) >> 8]
+	c.pc += 2
+
 }
 func (c *chip8) Chip8_8XYE() {
 	//8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
@@ -395,7 +402,9 @@ func (c *chip8) Chip8_DEBUG_MEMORY() {
 func (c *chip8) emulateCycle(window *glfw.Window) {
 	// Fetch opcode
 	c.opcode = uint16(c.memory[c.pc]) << 8 | uint16(c.memory[c.pc + 1])
-	c.Chip8_DEBUG()
+	
+	//c.Chip8_DEBUG()
+
 	// Decode Opcode
 	switch (c.opcode & 0xF000) {
 		case 0x0000:
@@ -437,8 +446,8 @@ func (c *chip8) emulateCycle(window *glfw.Window) {
 					c.Chip8_8XY5()
 				case 0x0006: 
 					c.Chip8_8XY6()
-				//case 0x0007:
-				//	c.Chip8_8XY7() // NOT IMPLEMENTED
+				case 0x0007:
+					c.Chip8_8XY7()
 				case 0x000E: 
 					c.Chip8_8XYE()
 				default:
