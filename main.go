@@ -10,6 +10,7 @@ import (
 	"github.com/go-gl/gl/v3.3-compatibility/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"time"
+	"flag"
 )
 
 var debug[]uint16 
@@ -51,9 +52,17 @@ type chip8 struct {
 func init() {
 }
 
+var filename = flag.String("file", "REQUIRED", "The file you would like to load")
 var myChip8 chip8
 
 func main() {
+	flag.Parse()
+
+	if *filename == "REQUIRED" {
+		print("You must include a filename to load. See --help.\n")
+		os.Exit(-2)
+	}
+
 	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
@@ -80,7 +89,8 @@ func main() {
 	gl.Ortho(0, 64, 32, 0, 0, 1)
 
 	myChip8.initialize()
-	myChip8.loadGame(os.Args[1]);
+
+	myChip8.loadGame(*filename)
 
 	for !window.ShouldClose() {
 
@@ -504,12 +514,13 @@ func (c *chip8) emulateCycle(window *glfw.Window) {
 	}
 
 	// Update Timers
+	// TODO: Ensure update occurs 60hz.  Is this just for timers or for full game loop?
 	if c.delay_timer > 0 {
 		c.delay_timer--
 	}
 	if c.sound_timer > 0 {
 		if c.sound_timer == 1{
-			fmt.Printf("BEEP!\n")
+			fmt.Print("\x07")
 		}
 		c.sound_timer--
 	}
