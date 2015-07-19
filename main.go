@@ -69,7 +69,7 @@ func main() {
 	}
 	defer glfw.Terminate()
 
-    glfw.WindowHint(glfw.Resizable, glfw.False)
+    	glfw.WindowHint(glfw.Resizable, glfw.False)
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	window, err := glfw.CreateWindow(640, 320, "chip8", nil, nil)
@@ -130,7 +130,6 @@ func (c *chip8) loadGame(filename string) {
 		c.memory[i+512] = raw[i]
 	}
 	//c.Chip8_DEBUG_MEMORY()
-
 }
 
 func (c *chip8) Chip8_00E0() {
@@ -260,7 +259,6 @@ func (c *chip8) Chip8_8XY7() {
 	}
 	c.v[(c.opcode & 0x0F00) >> 8] =  c.v[(c.opcode & 0x00F0) >> 4] - c.v[(c.opcode & 0x0F00) >> 8]
 	c.pc += 2
-
 }
 func (c *chip8) Chip8_8XYE() {
 	//8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
@@ -401,7 +399,6 @@ func (c *chip8) Chip8_DEBUG() {
 	}
 	fmt.Printf("\n")
 }
-
 func (c *chip8) Chip8_DEBUG_MEMORY() {
 	for i := 0; i < len(c.memory); i = i + 2 {	 
 		fmt.Printf("c.mem[%4X]:0x%4X\t", i, uint16(c.memory[i]) << 8 | uint16(c.memory[i + 1]))
@@ -568,4 +565,5 @@ var chip8_fontset = [80]byte{
   0xF0, 0x80, 0x80, 0x80, 0xF0, // C
   0xE0, 0x90, 0x90, 0x90, 0xE0, // D
   0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-  0xF0, 0x80, 0xF0, 0x80, 0x80} // F
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+  }
