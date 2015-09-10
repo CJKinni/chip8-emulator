@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"fmt"
-    "runtime"
-    "log"
+	"runtime"
+	"log"
 	"math/rand"
 	"github.com/go-gl/gl/v3.3-compatibility/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -182,7 +182,8 @@ func (c *chip8) Chip8_4XNN() {
 	}
 }
 func(c *chip8) Chip8_5XY0() {
-	//5XY0: Skip the following instruction if the value of register VX is equal to the value of register VY
+	//5XY0: Skip the following instruction if the value of register VX is equal 
+	//to the value of register VY
 	if (c.v[(c.opcode & 0x0F00) >> 8] == c.v[(c.opcode & 0x00F0) >> 4]) {
 		c.pc += 4
 	} else {
@@ -220,7 +221,8 @@ func (c *chip8) Chip8_8XY3() {
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XY4() {
-	//8XY4: Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+	//8XY4: Adds VY to VX. 
+	//VF is set to 1 when there's a carry, and to 0 when there isn't.
 	carry_check := uint16(c.v[(c.opcode & 0x00F0) >> 4] + c.v[(c.opcode & 0x00F0) >> 4])
 	if ((carry_check & 0xFF00) >> 8) > 0 {
 		c.v[0xF] = 1 //cary
@@ -231,17 +233,19 @@ func (c *chip8) Chip8_8XY4() {
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XY5() {
-	//8XY5: VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+	//8XY5: VY is subtracted from VX. 
+	//VF is set to 0 when there's a borrow, and 1 when there isn't.
 	if (c.v[(c.opcode & 0x0F00) >> 8] > c.v[(c.opcode & 0x00F0) >> 4]) {
 		c.v[0xF] = 1 
 	} else {
 		c.v[0xF] = 0 // borrow
 	}
-	c.v[(c.opcode & 0x0F00) >> 8] = c.v[(c.opcode & 0x0F00) >> 8]-  c.v[(c.opcode & 0x00F0) >> 4]
+	c.v[(c.opcode&0x0F00)>>8]=c.v[(c.opcode & 0x0F00)>>8]-c.v[(c.opcode & 0x00F0)>>4]
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XY6() {
-	// 8XY6: Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift
+	// 8XY6: Shifts VX right by one. 
+	//VF is set to the value of the least significant bit of VX before the shift
 	if (c.v[(c.opcode & 0x0F00) >> 8] & 0x01) == 0x01 {
 		c.v[0xF] = 1
 	} else {
@@ -251,17 +255,19 @@ func (c *chip8) Chip8_8XY6() {
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XY7() {
-	// 8XY7: Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+	// 8XY7: Sets VX to VY minus VX. 
+	//VF is set to 0 when there's a borrow, and 1 when there isn't.
 	if (c.v[(c.opcode & 0x0F00) >> 8] < c.v[(c.opcode & 0x00F0) >> 4]) {
 		c.v[0xF] = 1 
 	} else {
 		c.v[0xF] = 0 // borrow
 	}
-	c.v[(c.opcode & 0x0F00) >> 8] =  c.v[(c.opcode & 0x00F0) >> 4] - c.v[(c.opcode & 0x0F00) >> 8]
+	c.v[(c.opcode & 0x0F00)>>8]=c.v[(c.opcode&0x00F0)>>4]-c.v[(c.opcode&0x0F00)>>8]
 	c.pc += 2
 }
 func (c *chip8) Chip8_8XYE() {
-	//8XYE: Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift
+	//8XYE: Shifts VX left by one. 
+	//VF is set to the value of the most significant bit of VX before the shift
 	if (c.v[(c.opcode & 0x0F00) >> 8] & 0x80) == 0x80 {
 			c.v[0xF] = 1
 		} else {
@@ -364,7 +370,8 @@ func (c *chip8) Chip8_FX1E() {
 	c.pc += 2
 }
 func (c *chip8) Chip8_FX29() {
-	//FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
+	//FX29: Sets I to the location of the sprite for the character in VX. 
+	//Characters 0-F (in hexadecimal) are represented by a 4x5 font
 	c.i = uint16(c.v[(c.opcode & 0x0F00) >> 8] * byte(5))
 	c.pc += 2
 }
@@ -393,7 +400,8 @@ func (c *chip8) Chip8_FX65() {
 }
 
 func (c *chip8) Chip8_DEBUG() {
-	fmt.Printf("Op:%4X pc:%4X i:%4X s[sp]:%4X sp:%1X d:%2X", c.opcode, c.pc, c.i, c.stack[c.stack_p], c.stack_p, c.delay_timer)
+	fmt.Printf("Op:%4X pc:%4X i:%4X s[sp]:%4X sp:%1X d:%2X", 
+		c.opcode, c.pc, c.i, c.stack[c.stack_p], c.stack_p, c.delay_timer)
 	for i := 0; i < len(c.v); i++ {
 		fmt.Printf("v[%1X]:%2X ", i, c.v[i])
 	}
@@ -401,7 +409,8 @@ func (c *chip8) Chip8_DEBUG() {
 }
 func (c *chip8) Chip8_DEBUG_MEMORY() {
 	for i := 0; i < len(c.memory); i = i + 2 {	 
-		fmt.Printf("c.mem[%4X]:0x%4X\t", i, uint16(c.memory[i]) << 8 | uint16(c.memory[i + 1]))
+		fmt.Printf("c.mem[%4X]:0x%4X\t", i, 
+			uint16(c.memory[i]) << 8 | uint16(c.memory[i + 1]))
 	}
 	fmt.Printf("\n")
 }
@@ -511,7 +520,8 @@ func (c *chip8) emulateCycle(window *glfw.Window) {
 	}
 
 	// Update Timers
-	// TODO: Ensure update occurs 60hz.  Is this just for timers or for full game loop?
+	// TODO: Ensure update occurs 60hz.  
+	// Is this just for timers or for full game loop?
 	if c.delay_timer > 0 {
 		c.delay_timer--
 	}
